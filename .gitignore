@@ -1,0 +1,8 @@
+vendor/*
+composer.lock
+.idea/*
+*.phar
+config.json
+deleted/
+log/
+ProfildienstAutoRemover.phar

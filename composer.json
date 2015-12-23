@@ -1,0 +1,17 @@
+{
+  "require": {
+    "monolog/monolog": "*",
+    "phpmailer/phpmailer": "~5.2"
+  },
+  "autoload": {
+    "psr-0": {
+      "": "src/"
+    }
+  },
+  "bin": ["bin/pd-autoremove"],
+  "extra": {
+    "phar": {
+      "bundler": "composer"
+    }
+  }
+}
