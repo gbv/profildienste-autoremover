@@ -73,7 +73,7 @@ class App {
         if (is_dir($config->getValue('dirs', 'deleted'))){
 
             // All files after this date should be deleted
-            $backup_di = new DateInterval('PT'.$config->getValue('remove', 'backups').'M');
+            $backup_di = new DateInterval('P'.$config->getValue('remove', 'backups').'M');
             $delete_backups_before = (new DateTime())->sub($backup_di)->getTimestamp();
 
             // check all files in the deleted dir
