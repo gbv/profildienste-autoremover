@@ -52,18 +52,4 @@ class Config {
         $this->config['firstrun'] = false;
         file_put_contents('config.json', json_encode($this->config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
-
-    public function getTempSaveDir($checkForTrailingSlash = false){
-        if(is_null($this->temp_path)){
-            $this->temp_path = Config::getInstance()->getValue('dirs', 'temp', true).date('dmY_His');
-        }
-
-        return $checkForTrailingSlash ? Util::addTrailingSlash($this->temp_path) : $this->temp_path;
-    }
-
-    public function setupTitleTempDir(){
-        if(!is_dir($this->getTempSaveDir(true))){
-            mkdir(Util::addTrailingSlash($this->temp_path).'/titles/fail', 0777, true);
-        }
-    }
 }

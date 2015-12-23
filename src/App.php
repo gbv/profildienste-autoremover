@@ -79,11 +79,13 @@ class App {
                             if (unlink($config->getValue('dirs', 'deleted', true).$f)){
                                 $log->getLog()->addInfo('Deleted backup '.$fpath);
                             }else{
-                                $log->getLog()->addError('An error occured while deleting '.$fpath);
+                                $log->getLog()->addError('Could not delete '.$fpath);
                             }
                         }
                     }
                 }
+            }else{
+                $log->getLog()->addError('Could not open deleted dir ');
             }
         }
     }
