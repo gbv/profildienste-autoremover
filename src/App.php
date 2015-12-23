@@ -22,6 +22,11 @@ class App {
 
     }
 
+    /**
+     * Get the instance of the app.
+     *
+     * @return App
+     */
     public static function getInstance() {
 
         if (is_null(App::$instance)) {
