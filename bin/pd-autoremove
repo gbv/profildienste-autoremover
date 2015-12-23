@@ -1,5 +1,12 @@
 #!/usr/bin/env php
 <?php
+/**
+ * This is the main entry point of the application.
+ * This file is needed for the PHAR, which uses this
+ * file to locate the autoloader and start the application.
+ */
+
+// Locate the autoloader
 if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
     require __DIR__ . '/../vendor/autoload.php';
 } elseif (file_exists(__DIR__ . '/../../../autoload.php')) {
@@ -9,4 +16,5 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
     exit(1);
 }
 
+// Run the app
 App::getInstance()->run();

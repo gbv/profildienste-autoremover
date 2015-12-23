@@ -4,8 +4,15 @@ use Util\Config;
 use Util\Database;
 use Util\Log;
 
+/**
+ * Class App
+ *
+ * This is the main class of the App.
+ * The class is designed as a singleton.
+ */
 class App {
 
+    // Singleton
     private static $instance;
 
     private function __construct() {
@@ -24,11 +31,9 @@ class App {
         return App::$instance;
     }
 
-    public function getMailer() {
-        return $this->mailer;
-    }
-
-
+    /**
+     * Starts and run the application
+     */
     public function run() {
 
         $config = Config::getInstance();
@@ -68,19 +73,27 @@ class App {
         if (is_dir($config->getValue('dirs', 'deleted'))){
 
             // All files after this date should be deleted
-            $backup_di = new DateInterval('P'.$config->getValue('remove', 'backups').'D');
+            $backup_di = new DateInterval('PT'.$config->getValue('remove', 'backups').'M');
             $delete_backups_before = (new DateTime())->sub($backup_di)->getTimestamp();
 
+            // check all files in the deleted dir
             $deldir = opendir($config->getValue('dirs', 'deleted'));
             if($deldir){
                 while (false !== ($f = readdir($deldir))) {
                     if($f !== '.' && $f !== '..'){
-                        if (filemtime($config->getValue('dirs', 'deleted', true).$f) <= $delete_backups_before){
+
+                        $fpath = $config->getValue('dirs', 'deleted', true).$f;
+
+                        // delete the file if the timestamp of the last modification
+                        // is older than the specified period of days for backups
+                        if (filemtime($fpath) <= $delete_backups_before){
+
                             if (unlink($config->getValue('dirs', 'deleted', true).$f)){
                                 $log->getLog()->addInfo('Deleted backup '.$fpath);
                             }else{
                                 $log->getLog()->addError('Could not delete '.$fpath);
                             }
+
                         }
                     }
                 }

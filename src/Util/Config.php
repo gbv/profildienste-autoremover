@@ -7,8 +7,6 @@ class Config {
     private static $instance;
     private $config;
 
-    private $temp_path;
-
     private function __construct(){
         // a config file is present, try to load it
         $this->config = json_decode(file_get_contents('config.json'), true);

@@ -2,7 +2,12 @@
 
 namespace Util;
 
-
+/**
+ * Class Database
+ * @package Util
+ *
+ * Wrapper for interaction with the database
+ */
 class Database {
 
     private static $instance;
