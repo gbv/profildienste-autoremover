@@ -1,20 +1,107 @@
 #!/usr/bin/env php
 <?php
-/**
- * This is the main entry point of the application.
- * This file is needed for the PHAR, which uses this
- * file to locate the autoloader and start the application.
- */
 
-// Locate the autoloader
-if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
-    require __DIR__ . '/../vendor/autoload.php';
-} elseif (file_exists(__DIR__ . '/../../../autoload.php')) {
-    require __DIR__ . '/../../../autoload.php';
-} else {
-    fwrite(STDERR, 'ERROR: Composer dependencies not properly set up! Run "composer install" or see README.md for more details' . PHP_EOL);
+use Commands\CheckEnvironmentCommand;
+use Commands\DeleteLockfileCommand;
+use Config\Config;
+use Symfony\Component\Console\Application;
+use Symfony\Component\Console\ConsoleEvents;
+use Symfony\Component\Console\Event\ConsoleCommandEvent;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+
+const VERSION = '1.2.0';
+
+function searchAndRequire($file, $maxDepth = 3) {
+
+    $path = __DIR__ . DIRECTORY_SEPARATOR;
+    for ($i = 0; $i <= $maxDepth; $i++) {
+        if (file_exists($path . $file)) {
+            require $path . $file;
+            return;
+        }
+        $path .= '..' . DIRECTORY_SEPARATOR;
+    }
+
+    fwrite(STDERR, 'ERROR: The project is not properly set up! Please consult the README.' . PHP_EOL);
     exit(1);
 }
 
-// Run the app
-App::getInstance()->run();
+function getVersion() {
+
+    global $c;
+
+    $commitDate = new \DateTime(trim(exec('git log -n1 --pretty=%ci HEAD 2>/dev/null')));
+    $commitDate->setTimezone(new \DateTimeZone('UTC'));
+    $commitDate = $commitDate->format('d-m-Y H:m:s');
+
+    $hash = trim(exec('git log --pretty="%h" -n1 HEAD 2>/dev/null'));
+
+    if (empty($commitDate) || empty($hash)) {
+        $versionFile = $c['resourceFolder'].DIRECTORY_SEPARATOR.'version.json';
+        if (file_exists($versionFile)) {
+            $versionInfo = json_decode(file_get_contents($versionFile), true);
+            if (!is_null($versionInfo)) {
+                $commitDate = $versionInfo['date'];
+                $hash = $versionInfo['hash'];
+            }
+        } else {
+            return '--';
+        }
+    }
+
+    return sprintf('v%s-dev.%s (%s)',
+        VERSION,
+        $hash,
+        $commitDate
+    );
+}
+
+searchAndRequire('vendor/autoload.php');
+searchAndRequire('bootstrap/init.php');
+
+// init the DI container
+$c = new Pimple\Container();
+$c['resourceFolder'] = dirname(__DIR__).DIRECTORY_SEPARATOR.'resources';
+initContainer($c);
+
+//check if there is a config file, otherwise create one first.
+if (!file_exists(Config::getConfigFilePath())) {
+    Config::createConfigFile();
+    fprintf(STDOUT, "A configuration file template has been copied to %s.\nPlease review the configuration to make sure it can be used.\n", Config::getConfigFilePath());
+    return;
+}
+
+$dispatcher = new EventDispatcher();
+
+$console = new Application();
+$console->setDispatcher($dispatcher);
+$console->setName('Profildienst AutoRemover');
+$console->setVersion(getVersion());
+
+//$console->add(new AddMappingCommand($c['config'], $c['databaseService']));
+$console->add(new CheckEnvironmentCommand($c['validatorService'], $c['config']));
+
+$console->add(new DeleteLockfileCommand());
+
+$dispatcher->addListener(ConsoleEvents::TERMINATE, function () {
+    if (file_exists(Config::getLockFilePath())) {
+        unlink(Config::getLockFilePath());
+    }
+});
+
+$dispatcher->addListener(ConsoleEvents::COMMAND, function (ConsoleCommandEvent $event) {
+    $command = $event->getCommand();
+    // if a lockfile exists, only allow the delete-lockfile command
+    if (file_exists(Config::getLockFilePath()) && !($command instanceof DeleteLockfileCommand)) {
+        fprintf(STDERR, 'Running %s is not possible due to an existing lockfile.' . PHP_EOL,
+            $command->getName());
+        $event->disableCommand();
+    } else {
+        if (!touch(Config::getLockFilePath())) {
+            fprintf(STDERR, "Failed to create the lock file." . PHP_EOL);
+            exit(2);
+        }
+    }
+});
+
+$console->run();
