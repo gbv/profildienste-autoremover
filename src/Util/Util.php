@@ -10,6 +10,8 @@ namespace Util;
  */
 class Util {
 
+    private function __construct() {}
+
     /**
      * Checks if a given path contains a trailing slash and appends one if it doesn't
      *
@@ -18,6 +20,30 @@ class Util {
      */
     public static function addTrailingSlash($path){
         return rtrim($path, '/').'/';
+    }
+
+    public static function checkAndCreateDir($path) {
+
+        if (is_dir($path)) {
+            return true;
+        }
+
+        if (mkdir($path, 0777, true)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public static function format($val) {
+        return ($val > 0) ? $val : '-';
+    }
+
+    public static function createDir($path) {
+        if (!Util::checkAndCreateDir($path)) {
+            throw new Exception('Couldn\'t create '.$path.'!');
+        }
+        return Util::addTrailingSlash($path);
     }
 
 
