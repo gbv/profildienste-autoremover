@@ -2,7 +2,10 @@
 <?php
 
 use Commands\CheckEnvironmentCommand;
+use Commands\CompleteRunCommand;
+use Commands\DeleteBackupsCommand;
 use Commands\DeleteLockfileCommand;
+use Commands\DeleteTitlesCommand;
 use Config\Config;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\ConsoleEvents;
@@ -78,7 +81,11 @@ $console->setDispatcher($dispatcher);
 $console->setName('Profildienst AutoRemover');
 $console->setVersion(getVersion());
 
-//$console->add(new AddMappingCommand($c['config'], $c['databaseService']));
+$console->add(new DeleteTitlesCommand($c['logService'], $c['mailerService'], $c['databaseService'], $c['config'], $c['statsService']));
+$console->add(new DeleteBackupsCommand($c['logService'], $c['mailerService'], $c['config'], $c['statsService']));
+
+$console->add(new CompleteRunCommand($c['logService'], $c['mailerService']));
+
 $console->add(new CheckEnvironmentCommand($c['validatorService'], $c['config']));
 
 $console->add(new DeleteLockfileCommand());

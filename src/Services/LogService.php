@@ -29,7 +29,7 @@ class LogService {
         });
 
         if (is_dir($config->getValue('logging', 'dir', true))) {
-            $this->logPath = $config->getValue('logging', 'dir', true) . 'Import';
+            $this->logPath = $config->getValue('logging', 'dir', true) . 'AutoRemover';
             $handler = new RotatingFileHandler($this->logPath, 7 ,Logger::INFO);
             $this->log->pushHandler($handler);
         } else {

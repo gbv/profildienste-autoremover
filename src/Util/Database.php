@@ -50,14 +50,14 @@ class Database {
      */
     public function getAllTitles(\MongoDate $before){
 
-        $all_titles_before = $this->titles->find(array(
-            '$and' => array(
-                array('lastStatusChange' =>
-                    array('$lte' => $before)
-                ),
-                array('status' => 'rejected')
-            )
-        ));
+        $all_titles_before = $this->titles->find([
+            '$and' => [
+                ['lastStatusChange' =>
+                    ['$lte' => $before]
+                ],
+                ['status' => 'rejected']
+            ]
+        ]);
 
         $titles = array();
         foreach ($all_titles_before as $title){

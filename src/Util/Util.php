@@ -1,6 +1,7 @@
 <?php
 
 namespace Util;
+use \Exception;
 
 /**
  * Class Util

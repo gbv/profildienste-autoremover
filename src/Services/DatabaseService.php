@@ -4,6 +4,7 @@ namespace Services;
 
 use Config\Config;
 use Exception;
+use MongoDB\BSON\UTCDateTime;
 use MongoDB\Client;
 use MongoDB\Driver\Exception\ConnectionTimeoutException;
 
@@ -43,7 +44,37 @@ class DatabaseService {
         return true;
     }
 
-    public function insertTitle($title) {
-        $this->titles->insertOne($title);
+    /**
+     * Get all rejected titles older than $before.
+     *
+     * @param UTCDateTime $before
+     * @return array
+     */
+    public function getExpiredRejectedTitles(UTCDateTime $before){
+        return $this->titles->find([
+            '$and' => [
+                ['lastStatusChange' =>
+                    ['$lte' => $before]
+                ],
+                ['status' => 'rejected']
+            ]
+        ])->toArray();
+    }
+
+    /**
+     * Get all rejected titles older than $before.
+     *
+     * @param UTCDateTime $before
+     * @return int
+     */
+    public function deleteExpiredRejectedTitles(UTCDateTime $before){
+        return $this->titles->deleteMany([
+            '$and' => [
+                ['lastStatusChange' =>
+                    ['$lte' => $before]
+                ],
+                ['status' => 'rejected']
+            ]
+        ])->getDeletedCount();
     }
 }

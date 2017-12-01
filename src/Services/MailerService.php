@@ -45,68 +45,28 @@ class MailerService {
         $this->twig = new Twig_Environment($loader);
     }
 
-    public function sendUserNotificationMails(){
-
-        if (!$this->config->getValue('mailer', 'enable')) {
-            // notification mailing feature is disabled in this case
-            return;
-        }
-
-        $tStats = $this->statsService->getTitleStats();
-
-        if (count(array_keys($tStats)) > 0) {
-
-            $mapping = $this->config->getValue('mailer', 'mapping');
-
-            $mailer = new SendmailMailer;
-            $template = $this->twig->load('templates/notificationMail.twig');
-
-            $filteredStats = array_filter($tStats, function ($stat) use ($mapping){
-                return isset($mapping[$stat]);
-            }, ARRAY_FILTER_USE_KEY);
-
-            foreach ($filteredStats as $user => $titles) {
-
-                $mail = new Message;
-                $mail->setFrom('Profildienst Import <import@online-profildienst.gbv.de>')
-                    ->setSubject('Neuen Daten im Online Profildienst')
-                    ->setHtmlBody($template->render([
-                        'titles' => $titles,
-                        'id' => $user
-                    ]));
-
-                foreach ($mapping[$user] as $email) {
-                    $mail->addTo($email);
-                }
-
-                $mailer->send($mail);
-                $this->log->addInfo('Notification e-mail sent for user '.$user);
-            }
-        }
-    }
-
     public function sendReportMail() {
 
         $stats = $this->statsService->getStats();
 
         $total = array_reduce(array_values($stats), function ($carry, $stat){
-            return $carry + $stat['total'];
+            return $carry + $stat['success'] + $stat['fail'];
         }, 0);
 
         if ($total > 0) {
 
             $failed = array_reduce(array_values($stats), function ($carry, $stat){
-                return $carry + $stat['failed'];
+                return $carry + $stat['fail'];
             }, 0);
 
             $template = $this->twig->load('templates/reportMail.twig');
 
             $mail = new Message;
-            $mail->setFrom('Profildienst Import <import@online-profildienst.gbv.de>')
-                ->setSubject('Profildienst import report')
+            $mail->setFrom('Profildienst AutoRemover <noreply@online-profildienst.gbv.de>')
+                ->setSubject('Profildienst AutoRemover Report')
                 ->setHtmlBody($template->render([
                     'failedTitles' => $failed,
-                    'stepList' => array_keys($stats),
+                    'stepList' => $this->statsService->getExecutedSteps(),
                     'stats' => $stats
                 ]));
 
@@ -122,9 +82,4 @@ class MailerService {
             $this->log->addInfo('No email sent since nothing happened.');
         }
     }
-
-    public function sendErrorMail($addresses, $errors) {
-        // TODO
-    }
-
 }

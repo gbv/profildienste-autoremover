@@ -21,14 +21,19 @@ abstract class BaseCommand extends Command {
     protected $logService;
     protected $mailerService;
 
+    protected $log;
+
     public function __construct(LogService $logService, MailerService $mailerService) {
         parent::__construct();
         $this->logService = $logService;
         $this->mailerService = $mailerService;
+
+        $this->log = $this->logService->getLog();
     }
 
     protected function configure() {
         $this->addOption('no-mails', null, InputOption::VALUE_NONE, 'If this flag is set, no mails will be sent');
+        $this->addOption('disable-check', null, InputOption::VALUE_NONE, 'If this flag is set, no initial environment check will be executed.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output) {
@@ -43,14 +48,22 @@ abstract class BaseCommand extends Command {
             $this->sendMails = false;
         }
 
-        // check
-        $command = $this->getApplication()->find('config:check');
-        $inp = new ArrayInput([]);
-        $out = $input->hasParameterOption(['--verbose', '-v']) ? $output : new NullOutput();
-        $returnCode = $command->run($inp, $out);
+        $doCheck = true;
+        if ($input->hasParameterOption(['--disable-check', 'disable-check'])) {
+            $doCheck = false;
+        }
 
-        if ($returnCode !== 0) {
-            throw new Exception('The configuration and/or the environment is not set up properly! Please check the logs and try again.');
+        // check
+        if ($doCheck) {
+            $command = $this->getApplication()->find('config:check');
+            $inp = new ArrayInput([]);
+            $out = $input->hasParameterOption(['--verbose', '-v']) ? $output : new NullOutput();
+
+            $returnCode = $command->run($inp, $out);
+
+            if ($returnCode !== 0) {
+                throw new Exception('The configuration and/or the environment is not set up properly! Please check the logs and try again.');
+            }
         }
 
         $this->executeCommand($input, $output);

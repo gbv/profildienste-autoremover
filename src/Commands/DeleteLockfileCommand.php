@@ -23,7 +23,7 @@ class DeleteLockfileCommand extends Command {
             return;
         }
 
-        $output->writeln('<comment>Please make sure that there is no active importer before deleting the lockfile.</comment>');
+        $output->writeln('<comment>Please make sure that there is no active step before deleting the lockfile.</comment>');
 
         $helper = $this->getHelper('question');
         $question = new ConfirmationQuestion('Are you sure that you want to delete the lockfile (Y|n)?', false);
