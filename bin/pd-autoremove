@@ -12,7 +12,7 @@ use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
-const VERSION = '1.2.0';
+const VERSION = '1.2.1';
 
 function searchAndRequire($file, $maxDepth = 3) {
 
