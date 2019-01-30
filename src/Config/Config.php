@@ -85,7 +85,7 @@ class Config {
             ],
             'logging' => [
                 'dir' => self::getBaseDir() . '/log',
-                'mail' => ['keidel@gbv.de'],
+                'mail' => ['stropel@gbv.de'],
                 'enable_mail' => true
             ],
             'database' => [

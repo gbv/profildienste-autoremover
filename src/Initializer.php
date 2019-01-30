@@ -29,7 +29,7 @@ class Initializer {
             ),
             'logging' => array(
                 'dir' => getcwd().'/log',
-                'mail' => array('keidel@gbv.de'),
+                'mail' => array('stropel@gbv.de'),
                 'enable_mail' => true,
                 'max_mailsize' => 1000000
             ),
